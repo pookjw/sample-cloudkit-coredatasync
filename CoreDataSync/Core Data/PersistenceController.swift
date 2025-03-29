@@ -27,11 +27,18 @@ struct PersistenceController {
         }
         return result
     }()
-
-    let container: NSPersistentCloudKitContainer = {
+    
+    let mirroringDelegate: AnyObject
+    let container: NSPersistentCloudKitContainer
+    
+    init() {
         let container = NSPersistentCloudKitContainer(name: "CoreDataSync")
         container.viewContext.automaticallyMergesChangesFromParent = true
+        
+        var mirroringDelegate: AnyObject?
         container.loadPersistentStores(completionHandler: { (storeDescription, error) in
+            mirroringDelegate = storeDescription.perform(Selector(("mirroringDelegate"))).takeRetainedValue()
+            
             if let error = error as NSError? {
                 // Replace this implementation with code to handle the error appropriately.
                 // fatalError() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
@@ -47,7 +54,8 @@ struct PersistenceController {
                 fatalError("Unresolved error \(error), \(error.userInfo)")
             }
         })
-
-        return container
-    }()
+        
+        self.container = container
+        self.mirroringDelegate = mirroringDelegate!
+    }
 }
